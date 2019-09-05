@@ -24,4 +24,4 @@ firebase.json
 database.rules.json
 storage.rules
 .firebaserc
-src/firebase.js
+./src/firebase.js
