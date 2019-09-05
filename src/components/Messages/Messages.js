@@ -1,33 +1,33 @@
-import React from "react";
-import { Segment, Comment } from "semantic-ui-react";
-import { connect } from "react-redux";
-import { setUserPosts } from "../../actions";
-import firebase from "../../firebase";
+import React from 'react';
+import { Segment, Comment } from 'semantic-ui-react';
+import { connect } from 'react-redux';
+import { setUserPosts } from '../../actions';
+import firebase from '../../firebase';
 
-import MessagesHeader from "./MessagesHeader";
-import MessageForm from "./MessageForm";
-import Message from "./Message";
-import Typing from "./Typing";
-import Skeleton from "./Skeleton";
+import MessagesHeader from './MessagesHeader';
+import MessageForm from './MessageForm';
+import Message from './Message';
+import Typing from './Typing';
+import Skeleton from './Skeleton';
 
 class Messages extends React.Component {
   state = {
     privateChannel: this.props.isPrivateChannel,
-    privateMessagesRef: firebase.database().ref("privateMessages"),
-    messagesRef: firebase.database().ref("messages"),
+    privateMessagesRef: firebase.database().ref('privateMessages'),
+    messagesRef: firebase.database().ref('messages'),
     messages: [],
     messagesLoading: true,
     channel: this.props.currentChannel,
     isChannelStarred: false,
     user: this.props.currentUser,
-    usersRef: firebase.database().ref("users"),
-    numUniqueUsers: "",
-    searchTerm: "",
+    usersRef: firebase.database().ref('users'),
+    numUniqueUsers: '',
+    searchTerm: '',
     searchLoading: false,
     searchResults: [],
-    typingRef: firebase.database().ref("typing"),
+    typingRef: firebase.database().ref('typing'),
     typingUsers: [],
-    connectedRef: firebase.database().ref(".info/connected"),
+    connectedRef: firebase.database().ref('.info/connected'),
     listeners: []
   };
 
@@ -72,7 +72,7 @@ class Messages extends React.Component {
   };
 
   scrollToBottom = () => {
-    this.messagesEnd.scrollIntoView({ behavior: "smooth" });
+    this.messagesEnd.scrollIntoView({ behavior: 'smooth' });
   };
 
   addListeners = channelId => {
@@ -82,7 +82,7 @@ class Messages extends React.Component {
 
   addTypingListeners = channelId => {
     let typingUsers = [];
-    this.state.typingRef.child(channelId).on("child_added", snap => {
+    this.state.typingRef.child(channelId).on('child_added', snap => {
       if (snap.key !== this.state.user.uid) {
         typingUsers = typingUsers.concat({
           id: snap.key,
@@ -91,18 +91,18 @@ class Messages extends React.Component {
         this.setState({ typingUsers });
       }
     });
-    this.addToListeners(channelId, this.state.typingRef, "child_added");
+    this.addToListeners(channelId, this.state.typingRef, 'child_added');
 
-    this.state.typingRef.child(channelId).on("child_removed", snap => {
+    this.state.typingRef.child(channelId).on('child_removed', snap => {
       const index = typingUsers.findIndex(user => user.id === snap.key);
       if (index !== -1) {
         typingUsers = typingUsers.filter(user => user.id !== snap.key);
         this.setState({ typingUsers });
       }
     });
-    this.addToListeners(channelId, this.state.typingRef, "child_removed");
+    this.addToListeners(channelId, this.state.typingRef, 'child_removed');
 
-    this.state.connectedRef.on("value", snap => {
+    this.state.connectedRef.on('value', snap => {
       if (snap.val() === true) {
         this.state.typingRef
           .child(channelId)
@@ -120,7 +120,7 @@ class Messages extends React.Component {
   addMessageListener = channelId => {
     let loadedMessages = [];
     const ref = this.getMessagesRef();
-    ref.child(channelId).on("child_added", snap => {
+    ref.child(channelId).on('child_added', snap => {
       loadedMessages.push(snap.val());
       this.setState({
         messages: loadedMessages,
@@ -129,14 +129,17 @@ class Messages extends React.Component {
       this.countUniqueUsers(loadedMessages);
       this.countUserPosts(loadedMessages);
     });
-    this.addToListeners(channelId, ref, "child_added");
+    this.setState({
+      messagesLoading: false
+    });
+    this.addToListeners(channelId, ref, 'child_added');
   };
 
   addUserStarsListener = (channelId, userId) => {
     this.state.usersRef
       .child(userId)
-      .child("starred")
-      .once("value")
+      .child('starred')
+      .once('value')
       .then(data => {
         if (data.val() !== null) {
           const channelIds = Object.keys(data.val());
@@ -196,7 +199,7 @@ class Messages extends React.Component {
 
   handleSearchMessages = () => {
     const channelMessages = [...this.state.messages];
-    const regex = new RegExp(this.state.searchTerm, "gi");
+    const regex = new RegExp(this.state.searchTerm, 'gi');
     const searchResults = channelMessages.reduce((acc, message) => {
       if (
         (message.content && message.content.match(regex)) ||
@@ -218,7 +221,7 @@ class Messages extends React.Component {
       return acc;
     }, []);
     const plural = uniqueUsers.length > 1 || uniqueUsers.length === 0;
-    const numUniqueUsers = `${uniqueUsers.length} user${plural ? "s" : ""}`;
+    const numUniqueUsers = `${uniqueUsers.length} user${plural ? 's' : ''}`;
     this.setState({ numUniqueUsers });
   };
 
@@ -249,15 +252,15 @@ class Messages extends React.Component {
 
   displayChannelName = channel => {
     return channel
-      ? `${this.state.privateChannel ? "@" : "#"}${channel.name}`
-      : "";
+      ? `${this.state.privateChannel ? '@' : '#'}${channel.name}`
+      : '';
   };
 
   displayTypingUsers = users =>
     users.length > 0 &&
     users.map(user => (
       <div
-        style={{ display: "flex", alignItems: "center", marginBottom: "0.2em" }}
+        style={{ display: 'flex', alignItems: 'center', marginBottom: '0.2em' }}
         key={user.id}
       >
         <span className="user__typing">{user.name} is typing</span> <Typing />
